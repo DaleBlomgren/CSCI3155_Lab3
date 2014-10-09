@@ -3,9 +3,9 @@ object Lab3 extends jsy.util.JsyApplication {
   
   /*
    * CSCI 3155: Lab 3 
-   * <Your Name>
+   * Jonathan Huang
    * 
-   * Partner: <Your Partner's Name>
+   * Partner: Phu Dang
    * Collaborators: <Any Collaborators>
    */
 
@@ -175,10 +175,22 @@ object Lab3 extends jsy.util.JsyApplication {
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
-        // ****** Your cases here
-      
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
+      // number negation
+      case Unary(Neg, N(n1)) => N(-n1);
+      // boolean negation
+      case Unary(Not, B(n1)) => B(!n1);
+      // numerical addition
+      case Binary(Plus, N(n1), N(n2)) => N(n1 + n2);
+      // string concatenations
+      case Binary(Plus, S(n1), N(n2)) => S(n1 + n2);
+      case Binary(Plus, N(n1), S(n2)) => S(n1 + n2);
+      case Binary(Plus, S(n1), S(n2)) => S(n1 + n2);
+      // floating point operations
+      case Binary(Minus, N(n1), N(n2)) => N(n1 - n2);
+      case Binary(Times, N(n1), N(n2)) => N(n1 * n2);
+      case Binary(Div, N(n1), N(n2)) => N(n1 / n2);
       
         // ****** Your cases here
       

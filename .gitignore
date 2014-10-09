@@ -16,6 +16,12 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
+# Eclipse Settings
+.cache
+.classpath
+.project
+.settings/*
+
 # Useless Mac OS X Files
 *~
 .DS_Store
@@ -25,3 +31,4 @@ project/plugins/project/
 .Trashes
 ehthumbs.db
 Thumbs.db
+/bin
