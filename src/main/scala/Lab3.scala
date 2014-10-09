@@ -191,8 +191,32 @@ object Lab3 extends jsy.util.JsyApplication {
       case Binary(Minus, N(n1), N(n2)) => N(n1 - n2);
       case Binary(Times, N(n1), N(n2)) => N(n1 * n2);
       case Binary(Div, N(n1), N(n2)) => N(n1 / n2);
+      // less than
+      case Binary(Lt, N(n1), N(n2)) => B(n1 < n2)
+      case Binary(Lt, S(n1), S(n2)) => B(n1 < n2)
+      case Binary(Lt, N(n1), S(n2)) => B(toStr(N(n1)) < n2)
+      case Binary(Lt, S(n1), N(n2)) => B(n1 < toStr(N(n2)))
+      // less than/equal to
+      case Binary(Le, N(n1), N(n2)) => B(n1 <= n2)
+      case Binary(Le, S(n1), N(n2)) => B(n1 <= toStr(N(n2)))
+      case Binary(Le, N(n1), S(n2)) => B(toStr(N(n1)) <= toStr(S(n2)))
+      case Binary(Le, S(n1), S(n2)) => B(n1 <= n2)
+      // greater than/equal to
+      case Binary(Ge, N(n1), N(n2)) => B(n1 >= n2)
+      case Binary(Ge, S(n1), S(n2)) => B(n1 >= n2)
+      case Binary(Ge, N(n1), S(n2)) => B(toStr(N(n1)) >= n2)
+      case Binary(Ge, S(n1), N(n2)) => B(n1 >= toStr(N(n2)))
+      // greater than
+      case Binary(Gt, N(n1), N(n2)) => B(n1 > n2)
+      case Binary(Gt, S(n1), S(n2)) => B(n1 > n2)
+      case Binary(Gt, N(n1), S(n2)) => B(toStr(N(n1)) > n2)
+      case Binary(Gt, S(n1), N(n2)) => B(n1 > toStr(N(n2)))
+      // boolean operators
+      case Binary(And, v1, e2) => if (toBoolean(v1)) e2 else B(false)
+      case Binary(Or, v1, e2) => if (toBoolean(v1)) B(true) else e2
+      case Binary(Seq, v1, e2) => e2
       
-        // ****** Your cases here
+      case If(v1, e2, e3) => if(toBoolean(v1)) e2 else e3
       
       /* Cases that should never match. Your cases above should ensure this. */
       case Var(_) => throw new AssertionError("Gremlins: internal error, not closed expression.")
