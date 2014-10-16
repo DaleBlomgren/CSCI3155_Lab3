@@ -168,7 +168,7 @@ object Lab3 extends jsy.util.JsyApplication {
       case Call(e1,e2) => (eval(env,e1),eval(env,e2)) match {
         case (Function(None,x,ebody),v2) => eval(extend(env,x,v2),ebody)
         case (v1 @ Function(Some(x1),x2,ebody),v2) => eval(extend(extend(env,x2,v2),x1,v1),ebody)
-        case(_,_) => throw new DynamicTypeError(e)
+        case (_,_) => throw new DynamicTypeError(e)
       }
       case _ => throw new UnsupportedOperationException
     }
@@ -278,6 +278,16 @@ object Lab3 extends jsy.util.JsyApplication {
         case _ => throw new UnsupportedOperationException
       }
       case If(v1, e1, e2) => if (toBoolean(v1)) e1 else e2
+      case Call(e1, e2) if ((isValue(e1) && isValue(e2))) => e1 match {
+        case Function(Some(p), x, e3 ) => return substitute(substitute(e3, e1, p), e2, x);
+        case Function(None, x, e3 ) => return substitute(e3, e2, x);
+        case _ => throw new DynamicTypeError(e);
+      }
+      case Call(v1, e2) if (isValue(v1)) => v1 match {
+        case Function(x, y, z) => Call(v1, step(e2)) //if v1 is a function call on v1 and a stepped e2
+        case _ => throw new DynamicTypeError(e)
+      }
+      case Call(e1, e2) => Call(step(e1), e2)
       /* Cases that should never match. Your cases above should ensure this. */
       case Var(_) => throw new AssertionError("Gremlins: internal error, not closed expression.")
       case N(_) | B(_) | Undefined | S(_) | Function(_, _, _) => throw new AssertionError("Gremlins: internal error, step should not be called on values.");
