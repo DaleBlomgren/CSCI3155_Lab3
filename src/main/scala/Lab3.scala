@@ -284,8 +284,8 @@ object Lab3 extends jsy.util.JsyApplication {
         case _ => throw new DynamicTypeError(e);
       }
       case Call(v1, e2) if (isValue(v1)) => v1 match {
-        case Function(x, y, z) => Call(v1, step(e2)) //if v1 is a function call on v1 and a stepped e2
-        case _ => throw new DynamicTypeError(e)
+        case Function(x, y, z) => Call(v1, step(e2));
+        case _ => throw new DynamicTypeError(e);
       }
       case Call(e1, e2) => Call(step(e1), e2)
       /* Cases that should never match. Your cases above should ensure this. */
