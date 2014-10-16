@@ -194,9 +194,62 @@ object Lab3 extends jsy.util.JsyApplication {
     e match {
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
-      
-        // ****** Your cases here
-      
+      case Unary(op, e1) if isValue(e1) => op match {
+        case Neg => {
+          return N(-toNumber(e1));
+        }
+        case Not => {
+          return B(!toBoolean(e1));
+        }
+      }
+      case Unary(op, e1) => Unary(op, step(e1));
+      case Binary(op, e1, e2) if (isValue(e1) && isValue(e2)) => op match {
+        case Plus => (e1, e2) match {
+          // string concatenation
+          case (S(s1),e2) => return S(s1 + toStr(e2));
+          case (e1, S(s2)) => return S(toStr(e1) + s2);
+          case (_,_) => return N(toNumber(e1) + toNumber(e2));
+        }
+        case Minus => return N(toNumber(e1) - toNumber(e2));
+        case Times => return N(toNumber(e1) * toNumber(e2));
+        case Div => return N(toNumber(e1) / toNumber(e2));
+        case Eq => (e1, e2) match {
+          case (Function(x, y, z), e2) => throw new DynamicTypeError(e);
+          case (e1, Function(x, y, z)) => throw new DynamicTypeError(e);
+          case (_,_) => return B(e1 == e2);
+        }
+        case Ne => (e1, e2) match {
+          case (Function(x, y, z), e2) => throw new DynamicTypeError(e);
+          case (e1, Function(x, y, z)) => throw new DynamicTypeError(e);
+          case (_,_) => return B(e1 != e2);
+        }
+        case Lt => (e1, e2) match {
+          case(S(s1), S(s2)) => B(s1 < s2);
+          case(S(s1),e2) => B(toNumber(e1) < toNumber(e2));
+          case(e1, S(s2)) => B(toNumber(e1) < toNumber(e2));
+          case (_,_) => B(toNumber(e1) < toNumber(e2));
+        }
+        case Gt => (e1, e2) match {
+          case(S(s1), S(s2)) => B(s1 > s2);
+          case(S(s1),e2) => B(toNumber(e1) > toNumber(e2));
+          case(e1, S(s2)) => B(toNumber(e1) > toNumber(e2));
+          case (_,_) => B(toNumber(e1) > toNumber(e2));
+        }
+        case Le => (e1, e2) match {
+          case(S(s1), S(s2)) => B(s1 <= s2);
+          case(S(s1),e2) => B(toNumber(e1) <= toNumber(e2));
+          case(e1, S(s2)) => B(toNumber(e1) <= toNumber(e2));
+          case (_,_) => B(toNumber(e1) <= toNumber(e2));
+        }
+        case Ge => (e1, e2) match {
+          case(S(s1), S(s2)) => B(s1 >= s2);
+          case(S(s1),e2) => B(toNumber(e1) >= toNumber(e2));
+          case(e1, S(s2)) => B(toNumber(e1) >= toNumber(e2));
+          case (_,_) => B(toNumber(e1) >= toNumber(e2));
+        }
+        case And => if (toBoolean(e1)) return e2 else e1
+        case Or => if (toBoolean(e1)) return e1 else e2
+      }
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
       
