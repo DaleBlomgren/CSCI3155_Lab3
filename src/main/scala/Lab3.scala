@@ -262,6 +262,11 @@ object Lab3 extends jsy.util.JsyApplication {
           case (S(e1), N(e2)) => return B(e1 >= toStr(N(e2)));
           case (_,_) => throw new UnsupportedOperationException
         }
+        case Eq => (e1, e2) match {
+          case (Function(x, y, z), e2) => throw new DynamicTypeError(e)
+          case (e1, Function(x, y, z)) => throw new DynamicTypeError(e)
+          case (_,_) => return B(e1 == e2)
+        }
         case And => if (toBoolean(e1)) e2 else e1
         case Or => if (toBoolean(e1)) e1 else e2
         case Seq => e2
