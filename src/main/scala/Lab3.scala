@@ -185,7 +185,28 @@ object Lab3 extends jsy.util.JsyApplication {
     /* Body */
     e match {
       case N(_) | B(_) | Undefined | S(_) => e
+      case Function(p, s, e1) => {
+        if ((Some(x) == p) || (x ==s)) {
+          return e;
+        } else {
+          return Function(p,s, subst(e1));
+        }
+      }
+      case Binary(op, e1, e2) => op match {
+        case (Eq | Ne) => e1 match {
+          case Function(x,y,z) => throw new DynamicTypeError(e) 
+          case _ => {
+            return Binary(op, subst(e1), subst(e2));
+          }
+        }
+        case _ => return Binary(op, subst(e1), subst(e2));
+      }
+      case Unary(op, e1) => return Unary(op, subst(e1))
+      case Call(e1, e2) => return Call(subst(e1), subst(e2))
+      case If(e1, e2, e3) => return If(subst(e1), subst(e2), subst(e3))
       case Print(e1) => Print(subst(e1))
+      case Var(t) => if (t == x) v else e
+      case ConstDecl(y, e1, e2) => ConstDecl(y, subst(e1), if (x == y) e2 else subst(e2))
       case _ => throw new UnsupportedOperationException
     }
   }
