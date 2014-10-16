@@ -3,9 +3,9 @@ object Lab3 extends jsy.util.JsyApplication {
   
   /*
    * CSCI 3155: Lab 3 
-   * Jonathan Huang
+   * <Your Name>
    * 
-   * Partner: Phu Dang
+   * Partner: <Your Partner's Name>
    * Collaborators: <Any Collaborators>
    */
 
@@ -134,7 +134,22 @@ object Lab3 extends jsy.util.JsyApplication {
       case Binary(Times, e1, e2) => N(eToN(e1) * eToN(e2))
       case Binary(Div, e1, e2) => N(eToN(e1) / eToN(e2))
       
-      case Binary(bop @ (Eq | Ne), e1, e2) => throw new UnsupportedOperationException
+      case Binary(Eq, e1, e2) => (eToVal(e1), eToVal(e2)) match {
+        case (Function(_,_,_), _) => throw new DynamicTypeError(e)
+        case (_, Function(_,_,_)) => throw new DynamicTypeError(e)
+        case (S(s1), S(s2)) => B(s1 == s2)
+        case (N(n1), N(n2)) => B(n1 == n2)
+        case (B(b1), B(b2)) => B(b1 == b2)
+        case (_, _) => B(false)
+      }
+      case Binary(Ne, e1, e2) => (eToVal(e1), eToVal(e2)) match {
+        case (Function(_,_,_), _) => throw new DynamicTypeError(e)
+        case (_, Function(_,_,_)) => throw new DynamicTypeError(e)
+        case (S(s1), S(s2)) => B(s1 != s2) 
+        case (N(n1), N(n2)) => B(n1 != n2)
+        case (B(b1), B(b2)) => B(b1 != b2)
+        case (_, _) => B(true)
+      } 
       case Binary(bop @ (Lt|Le|Gt|Ge), e1, e2) => B(inequalityVal(bop, eToVal(e1), eToVal(e2)))
       
       case Binary(And, e1, e2) => 
@@ -150,6 +165,11 @@ object Lab3 extends jsy.util.JsyApplication {
       
       case ConstDecl(x, e1, e2) => eval(extend(env, x, eToVal(e1)), e2)
       
+      case Call(e1,e2) => (eval(env,e1),eval(env,e2)) match {
+        case (Function(None,x,ebody),v2) => eval(extend(env,x,v2),ebody)
+        case (v1 @ Function(Some(x1),x2,ebody),v2) => eval(extend(extend(env,x2,v2),x1,v1),ebody)
+        case(_,_) => throw new DynamicTypeError(e)
+      }
       case _ => throw new UnsupportedOperationException
     }
   }
@@ -175,48 +195,12 @@ object Lab3 extends jsy.util.JsyApplication {
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
+        // ****** Your cases here
+      
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
-      // number negation
-      case Unary(Neg, N(n1)) => N(-n1);
-      // boolean negation
-      case Unary(Not, B(n1)) => B(!n1);
-      // numerical addition
-      case Binary(Plus, N(n1), N(n2)) => N(n1 + n2);
-      // string concatenations
-      case Binary(Plus, S(n1), N(n2)) => S(n1 + n2);
-      case Binary(Plus, N(n1), S(n2)) => S(n1 + n2);
-      case Binary(Plus, S(n1), S(n2)) => S(n1 + n2);
-      // floating point operations
-      case Binary(Minus, N(n1), N(n2)) => N(n1 - n2);
-      case Binary(Times, N(n1), N(n2)) => N(n1 * n2);
-      case Binary(Div, N(n1), N(n2)) => N(n1 / n2);
-      // less than
-      case Binary(Lt, N(n1), N(n2)) => B(n1 < n2)
-      case Binary(Lt, S(n1), S(n2)) => B(n1 < n2)
-      case Binary(Lt, N(n1), S(n2)) => B(toStr(N(n1)) < n2)
-      case Binary(Lt, S(n1), N(n2)) => B(n1 < toStr(N(n2)))
-      // less than/equal to
-      case Binary(Le, N(n1), N(n2)) => B(n1 <= n2)
-      case Binary(Le, S(n1), N(n2)) => B(n1 <= toStr(N(n2)))
-      case Binary(Le, N(n1), S(n2)) => B(toStr(N(n1)) <= toStr(S(n2)))
-      case Binary(Le, S(n1), S(n2)) => B(n1 <= n2)
-      // greater than/equal to
-      case Binary(Ge, N(n1), N(n2)) => B(n1 >= n2)
-      case Binary(Ge, S(n1), S(n2)) => B(n1 >= n2)
-      case Binary(Ge, N(n1), S(n2)) => B(toStr(N(n1)) >= n2)
-      case Binary(Ge, S(n1), N(n2)) => B(n1 >= toStr(N(n2)))
-      // greater than
-      case Binary(Gt, N(n1), N(n2)) => B(n1 > n2)
-      case Binary(Gt, S(n1), S(n2)) => B(n1 > n2)
-      case Binary(Gt, N(n1), S(n2)) => B(toStr(N(n1)) > n2)
-      case Binary(Gt, S(n1), N(n2)) => B(n1 > toStr(N(n2)))
-      // boolean operators
-      case Binary(And, v1, e2) => if (toBoolean(v1)) e2 else B(false)
-      case Binary(Or, v1, e2) => if (toBoolean(v1)) B(true) else e2
-      case Binary(Seq, v1, e2) => e2
       
-      case If(v1, e2, e3) => if(toBoolean(v1)) e2 else e3
+        // ****** Your cases here
       
       /* Cases that should never match. Your cases above should ensure this. */
       case Var(_) => throw new AssertionError("Gremlins: internal error, not closed expression.")
