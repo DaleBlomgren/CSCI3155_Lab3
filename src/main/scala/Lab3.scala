@@ -184,29 +184,30 @@ object Lab3 extends jsy.util.JsyApplication {
     def subst(e: Expr): Expr = substitute(e, v, x)
     /* Body */
     e match {
+      case Var(y) => if (x==y) v else Var(y)
       case N(_) | B(_) | Undefined | S(_) => e
-      case Function(p, s, e1) => {
-        if ((Some(x) == p) || (x ==s)) {
-          return e;
-        } else {
-          return Function(p,s, subst(e1));
-        }
-      }
-      case Binary(op, e1, e2) => op match {
-        case (Eq | Ne) => e1 match {
-          case Function(x,y,z) => throw new DynamicTypeError(e) 
-          case _ => {
-            return Binary(op, subst(e1), subst(e2));
-          }
-        }
-        case _ => return Binary(op, subst(e1), subst(e2));
-      }
-      case Unary(op, e1) => return Unary(op, subst(e1))
-      case Call(e1, e2) => return Call(subst(e1), subst(e2))
-      case If(e1, e2, e3) => return If(subst(e1), subst(e2), subst(e3))
       case Print(e1) => Print(subst(e1))
-      case Var(t) => if (t == x) v else e
-      case ConstDecl(y, e1, e2) => ConstDecl(y, subst(e1), if (x == y) e2 else subst(e2))
+      case Function(p,y,e1) => p match {
+        case None =>
+          {
+            if (x==y) e //Case if variable x equals y
+            else Function(p,y,subst(e1))
+          }
+        case Some(f) =>
+          {
+            if (x==f || x==y) e
+            else Function(Some(f),y,subst(e1))
+          }
+      }
+      case Binary(bop,e1,e2) => Binary(bop,subst(e1),subst(e2))
+      case Unary(uop,e1) => Unary(uop,subst(e1))
+      case If(e1, e2, e3) => If(subst(e1), subst(e2), subst(e3))
+      case ConstDecl(y, e1, e2) => 
+        {
+          if (x == y) ConstDecl(y, subst(e1), e2) 
+          else ConstDecl(y, subst(e1), subst(e2))
+        }
+      case Call(e1,e2) => Call(subst(e1),subst(e2))
       case _ => throw new UnsupportedOperationException
     }
   }
@@ -215,79 +216,63 @@ object Lab3 extends jsy.util.JsyApplication {
     e match {
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
+      
+        // ****** Your cases here
+      case Unary(Neg,v1) if (isValue(v1)) => N(-toNumber(v1))
+      case Unary(Not,v1) if (isValue(v1)) => B(!toBoolean(v1))
+      case Binary(Seq,e1,e2) if (isValue(e1)) => e2
+      case Binary(Plus,e1,e2) if(isValue(e1)&&isValue(e2)) => (e1,e2) match {
+        case (S(s1),v2) => S(s1+ toStr(v2))
+        case (v1,S(s2)) => S(toStr(v1)+s2)
+        case (_,_) => N(toNumber(e1)+toNumber(e2))        
+      }
+      case Binary(Minus,v1,v2) if (isValue(v1)&&isValue(v2)) => N(toNumber(v1)-toNumber(v2))
+      case Binary(Times,v1,v2) if (isValue(v1)&&isValue(v2)) => N(toNumber(v1)*toNumber(v2))
+      case Binary(Div,v1,v2) if (isValue(v1)&&isValue(v2)) => N(toNumber(v1)/toNumber(v2))
+      case Binary(bop @ (Lt|Le|Gt|Ge), v1, v2) if(isValue(v1)&&isValue(v2)) => B(inequalityVal(bop, v1,v2))
+      case Binary(bop @ (Eq|Ne),Function(_,_,_),v2) if(isValue(v2)) => throw new DynamicTypeError(e)
+      case Binary(bop @ (Eq|Ne),v1,Function(_,_,_)) if(isValue(v1)) => throw new DynamicTypeError(e)
+      case Binary(bop@ (Eq|Ne),v1,v2) if(isValue(v1)&&isValue(v2)) => bop match {
+        case Eq => B(toNumber(v1)==toNumber(v2))
+        case Ne => B(toNumber(v1)!=toNumber(v2))
+        case _ => throw new UnsupportedOperationException 
+      }
+      case Binary(And,B(true),e2) => e2
+      case Binary(And,B(false),e2) => B(false)
+      case Binary(Or,B(true),e2) => B(true)
+      case Binary(Or,B(false),e2) => e2
+      case Binary(Or,v1,v2) =>
+      {
+		  if (B(toBoolean(v1)) == B(true)) v1
+		  else v2
+      }	 
+      case Binary(And,v1,v2) =>
+      {
+		  if (B(toBoolean(v1)) == B(false)) B(false)
+		  else v2
+      }	 
+      case If(B(true),e2,e3) => e2
+      case If(B(false),e2,e3) => e3
+      case ConstDecl(x, v1, e2) if (isValue(v1)) => substitute(e2,v1,x)
+      case Call(v1,v2) if(isValue(v1)&&isValue(v2)) => v1 match {
+        case Function(None,x,e1) => substitute(e1,v2,x)
+        case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
+        case N(n1) => throw new DynamicTypeError(e)
+        }
+      
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
-      case Unary(op, e1) => op match {
-        case Neg => {
-          return N(-toNumber(e1));
-        }
-        case Not => {
-          return B(!toBoolean(e1));
-        }
-      }
-      case Binary(op, e1, e2) => op match {
-        case Plus => (e1, e2) match {
-          case (S(s1),e2) => return S(s1 + toStr(e2));
-          case (e1, S(s2)) => return S(toStr(e1) + s2);
-          case (_,_) => return N(toNumber(e1) + toNumber(e2));
-        }
-        case Minus => return N(toNumber(e1) - toNumber(e2));
-        case Times => return N(toNumber(e1) * toNumber(e2));
-        case Div => return N(toNumber(e1) / toNumber(e2));
-        case Lt => (e1, e2) match {
-          case (N(e1), N(e2)) => return B(e1 < e2);
-          case (S(e1), S(e2)) => return B(e1 < e2);
-          case (N(e1), S(e2)) => return B(toStr(N(e1)) < e2);
-          case (S(e1), N(e2)) => return B(e1 < toStr(N(e2)));
-          case (_,_) => throw new UnsupportedOperationException
-        }
-        case Le => (e1, e2) match {
-          case (N(e1), N(e2)) => return B(e1 <= e2);
-          case (S(e1), S(e2)) => return B(e1 <= e2);
-          case (N(e1), S(e2)) => return B(toStr(N(e1)) <= e2);
-          case (S(e1), N(e2)) => return B(e1 <= toStr(N(e2)));
-          case (_,_) => throw new UnsupportedOperationException
-        }
-        case Gt => (e1, e2) match {
-          case (N(e1), N(e2)) => return B(e1 > e2);
-          case (S(e1), S(e2)) => return B(e1 > e2);
-          case (N(e1), S(e2)) => return B(toStr(N(e1)) > e2);
-          case (S(e1), N(e2)) => return B(e1 > toStr(N(e2)));
-          case (_,_) => throw new UnsupportedOperationException
-        }
-        case Ge => (e1, e2) match {
-          case (N(e1), N(e2)) => return B(e1 >= e2);
-          case (S(e1), S(e2)) => return B(e1 >= e2);
-          case (N(e1), S(e2)) => return B(toStr(N(e1)) >= e2);
-          case (S(e1), N(e2)) => return B(e1 >= toStr(N(e2)));
-          case (_,_) => throw new UnsupportedOperationException
-        }
-        case Eq => (e1, e2) match {
-          case (Function(x, y, z), e2) => throw new DynamicTypeError(e)
-          case (e1, Function(x, y, z)) => throw new DynamicTypeError(e)
-          case (_,_) => return B(e1 == e2)
-        }
-        case Ne => (e1, e2) match {
-          case (Function(x, y, z), e2) => throw new DynamicTypeError(e)
-          case (e1, Function(x, y, z)) => throw new DynamicTypeError(e)
-          case (_,_) => return B(e1 != e2)
-        }
-        case And => if (toBoolean(e1)) e2 else e1
-        case Or => if (toBoolean(e1)) e1 else e2
-        case Seq => e2
-        case _ => throw new UnsupportedOperationException
-      }
-      case If(v1, e1, e2) => if (toBoolean(v1)) e1 else e2
-      case Call(e1, e2) if ((isValue(e1) && isValue(e2))) => e1 match {
-        case Function(Some(p), x, e3 ) => return substitute(substitute(e3, e1, p), e2, x);
-        case Function(None, x, e3 ) => return substitute(e3, e2, x);
-        case _ => throw new DynamicTypeError(e);
-      }
-      case Call(v1, e2) if (isValue(v1)) => v1 match {
-        case Function(x, y, z) => Call(v1, step(e2));
-        case _ => throw new DynamicTypeError(e);
-      }
-      case Call(e1, e2) => Call(step(e1), e2)
+      case Unary(uop,e1) => Unary(uop,step(e1))
+      case Binary(bop @ (Eq|Ne),Function(_,_,_),e2) => throw new DynamicTypeError(e)
+      case Binary(bop,v1,e2) if(isValue(v1)) => Binary(bop,v1,step(e2))
+      case Binary(bop,e1,e2) => Binary(bop,step(e1),e2)
+      case If(e1,e2,e3) => If(step(e1),e2,e3)
+      case ConstDecl(x,e1,e2) => ConstDecl(x,step(e1),e2)
+      case Call(e1 @ Function(_,_,_),e2) => Call(e1,step(e2)) 
+      case Call(v1, e2) if (isValue(v1)) => throw new DynamicTypeError(e)
+      case Call(e1,e2) => Call(step(e1),e2)   
+      
+        // ****** Your cases here
       /* Cases that should never match. Your cases above should ensure this. */
       case Var(_) => throw new AssertionError("Gremlins: internal error, not closed expression.")
       case N(_) | B(_) | Undefined | S(_) | Function(_, _, _) => throw new AssertionError("Gremlins: internal error, step should not be called on values.");
