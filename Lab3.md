@@ -1,8 +1,10 @@
 #1 (a)
- 
-#2 (c) The evaluation order can be determined if the operation is small-step and if the code has side-effects. Otherwise, it is not possible to tell the evaluation order.
 
-#3 The evaluation order is left to right for e1 + e2. To change the evaluation order, you would need to change the search rule in the small step to eval e1 instead of e2.
+#2 (c)
+The evaluation order can be determined if the operation is small-step and if the code has side-effects. Otherwise, it is not possible to tell the evaluation order.
+
+#3
+The evaluation order is left to right for e1 + e2. To change the evaluation order, you would need to change the search rule in the small step to eval e1 instead of e2.
 
 #4 (a)
 
