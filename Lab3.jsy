@@ -1,0 +1,4 @@
+const x = 42;
+const g = function(y) { return x; };
+const h = function(x) { return g(72); };
+jsy.print(h(33));
