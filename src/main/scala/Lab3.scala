@@ -3,10 +3,10 @@ object Lab3 extends jsy.util.JsyApplication {
   
   /*
    * CSCI 3155: Lab 3 
-   * Jonathan Huang
+   * <Your Name>
    * 
-   * Partner: Phu Dang
-   * Collaborators:
+   * Partner: <Your Partner's Name>
+   * Collaborators: <Any Collaborators>
    */
 
   /*
