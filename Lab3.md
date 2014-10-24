@@ -1,7 +1,9 @@
 #1 (a)
+```
 x = 2
 function(x) {x} (8)
 print x
+```
 
 Under **static** scoping, the following will print 2.
 Under **dynamic** scoping, the following will print 8.
