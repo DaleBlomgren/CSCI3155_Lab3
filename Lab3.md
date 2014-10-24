@@ -3,8 +3,8 @@ x = 2
 function(x) {x} (8)
 print x
 
-Under ***static scoping, the following will print 2.
-Under ***dynamic scoping, the following will print 8.
+Under **static** scoping, the following will print 2.
+Under **dynamic** scoping, the following will print 8.
 
 They yield different results because the environment changes when the function is called when evaluated using big steps rather than being substituted when evaluated with small steps.
 
